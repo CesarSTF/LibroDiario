@@ -8,99 +8,101 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/libro_diario.css' %}">
 </head>
 <body>
-    <header>
-        <h1>Libro Diario</h1>
-    </header>
-    <main>
-        <section id="libro-diario">
-            <h2>Detalles del Libro Diario</h2>
-            <form method="post" id="form-libro-diario">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit">Guardar</button>
-            </form>
-            <hr>
-            <h3>Filtrar por fecha</h3>
-            <form method="get" id="form-filtrar-fecha">
-                <label for="fecha_inicio">Fecha inicio:</label>
-                <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio|date:'Y-m-d' }}">
-                <label for="fecha_fin">Fecha fin:</label>
-                <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin|date:'Y-m-d' }}">
-                <button type="submit">Filtrar</button>
-            </form>
-            <hr>
-            <h3>Libro Diario</h3>
-            <div class="table-container">
-                <table id="tabla-entradas">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Detalles</th>
-                            <th>Ingreso Caja</th>
-                            <th>Egreso Caja</th>
-                            <th>Ingreso Banco</th>
-                            <th>Egreso Banco</th>
-                            <th>IVA</th>
-                            <th>IVA Ingreso</th>
-                            <th>IVA Egreso</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for libro in libros_diarios %}
-                            <tr>
-                                <td colspan="9"><strong>Libro Diario: {{ libro.libro.descripcion }}</strong></td>
-                            </tr>
-                            <tr>
-                                <td>Saldo Inicial</td>
-                                <td></td>
-                                <td>{{ libro.libro.saldoInicialCaja }}</td>
-                                <td></td>
-                                <td>{{ libro.libro.saldoInicialBanco }}</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            {% for entrada in libro.libro.entradadiario_set.all %}
-                                <tr>
-                                    <td>{{ entrada.fecha }}</td>
-                                    <td>{{ entrada.descripcion }}</td>
-                                    <td>{{ entrada.ingresoCaja }}</td>
-                                    <td>{{ entrada.egresoCaja }}</td>
-                                    <td>{{ entrada.ingresoBanco }}</td>
-                                    <td>{{ entrada.egresoBanco }}</td>
-                                    <td>{{ entrada.iva }}</td>
-                                    <td>{{ entrada.ivaIngreso }}</td>
-                                    <td>{{ entrada.ivaEgreso }}</td>
-                                </tr>
-                            {% endfor %}
-                            <tr class="table-footer">
-                                <td>Total</td>
-                                <td></td>
-                                <td>{{ libro.totales.ingreso_caja }}</td>
-                                <td>{{ libro.totales.egreso_caja }}</td>
-                                <td>{{ libro.totales.ingreso_banco }}</td>
-                                <td>{{ libro.totales.egreso_banco }}</td>
-                                <td></td>
-                                <td>{{ libro.totales.iva_ingreso }}</td>
-                                <td>{{ libro.totales.iva_egreso }}</td>
-                            </tr>
-                            <tr class="table-footer">
-                                <td>Ganancia Neta</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>{{ libro.totales.ganancia_neta }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div>
+        <h1>Libros Diarios</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.fecha.id_for_label }}">Fecha:</label>
+                {{ form.fecha }}
             </div>
-        </section>
-    </main>
+            <div class="form-group">
+                <label for="{{ form.descripcion.id_for_label }}">Descripción:</label>
+                {{ form.descripcion }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.saldoInicialCaja.id_for_label }}">Saldo Inicial Caja:</label>
+                {{ form.saldoInicialCaja }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.saldoInicialBanco.id_for_label }}">Saldo Inicial Banco:</label>
+                {{ form.saldoInicialBanco }}
+            </div>
+            <button type="submit">Crear Libro Diario</button>
+        </form>
+    </div>
+    
+    <div>
+        <h2>Lista de Libros Diarios</h2>
+        <form method="get">
+            <div class="form-group">
+                <label for="fecha_inicio">Fecha Inicio:</label>
+                <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}">
+            </div>
+            <div class="form-group">
+                <label for="fecha_fin">Fecha Fin:</label>
+                <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}">
+            </div>
+            <div class="form-group">
+                <button type="submit">Filtrar</button>
+            </div>
+        </form>
+    </div>
+
+    <div>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Acciones</th>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Saldo Inicial Caja</th>
+                    <th>Saldo Inicial Banco</th>
+                    <th>Ingreso Caja</th>
+                    <th>Egreso Caja</th>
+                    <th>Ingreso Banco</th>
+                    <th>Egreso Banco</th>
+                    <th>IVA Ingreso</th>
+                    <th>IVA Egreso</th>
+                    <th>Saldo Final Caja</th>
+                    <th>Saldo Final Banco</th>
+                    <th>Ganancia Neta</th>
+                    <th>Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in libros_con_totales %}
+                <tr>
+                    <td><a href="{% url 'entrada_diario' item.libro.id %}">Ver libro</a></td>
+                    <td>{{ item.libro.fecha|date:"d/m/y" }}</td>
+                    <td>{{ item.libro.descripcion }}</td>
+                    <td>{{ item.libro.saldoInicialCaja }}</td>
+                    <td>{{ item.libro.saldoInicialBanco }}</td>
+                    <td>{{ item.total_ingreso_caja }}</td>
+                    <td>{{ item.total_egreso_caja }}</td>
+                    <td>{{ item.total_ingreso_banco }}</td>
+                    <td>{{ item.total_egreso_banco }}</td>
+                    <td>{{ item.total_iva_ingreso }}</td>
+                    <td>{{ item.total_iva_egreso }}</td>
+                    <td>{{ item.saldo_final_caja }}</td>
+                    <td>{{ item.saldo_final_banco }}</td>
+                    <td>{{ item.ganancia_neta }}</td>
+                    <td>
+                        <form method="post" action="{% url 'eliminar_libro_diario' item.libro.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" onclick="return confirmarEliminacion();">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function confirmarEliminacion() {
+            return confirm("¿Estás seguro de que deseas eliminar este libro diario?");
+        }
+    </script>
 </body>
 </html>
