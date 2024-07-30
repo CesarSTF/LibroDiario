@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+
 
 class LibroDiario(models.Model):
     fecha = models.DateField()
@@ -32,33 +34,51 @@ class LibroDiario(models.Model):
     def __str__(self):
         return self.descripcion
 
+
+from django.db import models
+from django.core.exceptions import ValidationError
+
 class EntradaDiario(models.Model):
-    libroDiario = models.ForeignKey(LibroDiario, on_delete=models.CASCADE)
+    descripcion = models.CharField(max_length=255)
+    ingresoCaja = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    egresoCaja = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    ingresoBanco = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    egresoBanco = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    iva = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # IVA en porcentaje
+    ivaIngreso = models.DecimalField(max_digits=10, decimal_places=2, default=0, editable=False)
+    ivaEgreso = models.DecimalField(max_digits=10, decimal_places=2, default=0, editable=False)
+    libroDiario = models.ForeignKey('LibroDiario', on_delete=models.CASCADE)
     fecha = models.DateField()
-    descripcion = models.CharField(max_length=100)
-    numeroComprobante = models.CharField(max_length=10, editable=False)
-    ingresoCaja = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    egresoCaja = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    ingresoBanco = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    egresoBanco = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    iva = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    ivaIngreso = models.DecimalField(max_digits=18, decimal_places=2, default=0, editable=False)
-    ivaEgreso = models.DecimalField(max_digits=18, decimal_places=2, default=0, editable=False)
+
+    @property
+    def monto(self):
+        return self.ingresoCaja + self.egresoCaja + self.ingresoBanco + self.egresoBanco
+
+    @property
+    def iva_total(self):
+        return (self.monto * self.iva) / 100
+
+    @property
+    def numeroComprobante(self):
+        return self.id
+
+    def clean(self):
+        # Validar que los valores no sean negativos
+        if self.ingresoCaja < 0:
+            raise ValidationError('El ingreso en caja no puede ser negativo.')
+        if self.egresoCaja < 0:
+            raise ValidationError('El egreso en caja no puede ser negativo.')
+        if self.ingresoBanco < 0:
+            raise ValidationError('El ingreso en banco no puede ser negativo.')
+        if self.egresoBanco < 0:
+            raise ValidationError('El egreso en banco no puede ser negativo.')
 
     def save(self, *args, **kwargs):
+        # Llamar al método clean para validar los datos
+        self.clean()
+
         # Calcular IVA de ingreso y egreso
         self.ivaIngreso = (self.ingresoCaja + self.ingresoBanco) * self.iva / 100
         self.ivaEgreso = (self.egresoCaja + self.egresoBanco) * self.iva / 100
 
-        if not self.numeroComprobante:
-            last_entry = EntradaDiario.objects.filter(libroDiario=self.libroDiario).order_by('id').last()
-            if last_entry:
-                last_num = int(last_entry.numeroComprobante)
-                self.numeroComprobante = f"{last_num + 1:02d}"
-            else:
-                self.numeroComprobante = "01"
-
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.descripcion

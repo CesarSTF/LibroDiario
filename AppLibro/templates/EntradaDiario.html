@@ -6,21 +6,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada Diario</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/entrada_diario.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <header>
-        <h1>Entrada Diario</h1>
-    </header>
-    <main>
-        <section id="entrada-diario">
-            <h2>Detalles de la Entrada</h2>
-            <form method="post" id="form-entrada-diario">
+    <div id="content">
+        <h1>Entradas del Libro Diario</h1>
+        
+        <div>
+            <h2>Detalles del Libro Diario</h2>
+            <p><strong>Libro Diario:</strong> {{ libro_diario }}</p>
+            <p><strong>Fecha:</strong> {{ libro_diario.fecha|date:"d/m/Y" }}</p>
+            <p><strong>Saldo Inicial Caja:</strong> {{ libro_diario.saldoInicialCaja }}</p>
+            <p><strong>Saldo Inicial Banco:</strong> {{ libro_diario.saldoInicialBanco }}</p>
+        </div>
+        
+        <div>
+            <h2>Agregar Nueva Entrada</h2>
+            <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit">Guardar</button>
+                <button type="submit">Agregar Entrada</button>
             </form>
-        </section>
-    </main>
+        </div>
+
+        <div>
+            <h2>Entradas Registradas</h2>
+            {% if entradas %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Comprobante</th> <!-- Columna para el ID como número de comprobante -->
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>IVA%</th>
+                            <th>Total IVA</th>
+                            <th>Tipo</th>
+                            <th>Fuente</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entrada in entradas %}
+                            <tr>
+                                <td>{{ entrada.id }}</td> <!-- Mostrar el ID como número de comprobante -->
+                                <td>{{ entrada.descripcion }}</td>
+                                <td>{{ entrada.ingresoCaja|add:entrada.egresoCaja|add:entrada.ingresoBanco|add:entrada.egresoBanco }}</td>
+                                <td>{{ entrada.iva }}</td>
+                                <td>{{ entrada.iva_total }}</td>
+                                <td data-tipo="{% if entrada.ingresoCaja or entrada.ingresoBanco %}Ingreso{% else %}Egreso{% endif %}"></td>
+                                <td data-fuente="{% if entrada.ingresoCaja or entrada.egresoCaja %}Caja{% elif entrada.ingresoBanco or entrada.egresoBanco %}Banco{% endif %}"></td>
+                                <td>
+                                    <a href="{% url 'modificar_entrada' entrada.id %}">Modificar</a>
+                                    <a href="{% url 'eliminar_entrada' entrada.id %}" onclick="return confirm('¿Estás seguro de que quieres eliminar esta entrada?');">Eliminar</a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8">No hay entradas registradas.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No hay entradas registradas.</p>
+            {% endif %}
+        </div>
+        
+        <div>
+            <a href="{% url 'libro_diario' %}">Volver a la lista de Libros Diarios</a>
+        </div>
+    </div>
+    <button onclick="generatePDF()">Descargar PDF</button>
+
+    <script>
+        async function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            // Información del libro diario
+            const libroDiario = {
+                fecha: "{{ libro_diario.fecha|date:'d/m/Y' }}",
+                saldoInicialCaja: "{{ libro_diario.saldoInicialCaja }}",
+                saldoInicialBanco: "{{ libro_diario.saldoInicialBanco }}"
+            };
+
+            // Tabla de entradas
+            const entries = [];
+            document.querySelectorAll("tbody tr").forEach(row => {
+                const entry = {
+                    id: row.children[0].innerText,
+                    descripcion: row.children[1].innerText,
+                    monto: row.children[2].innerText,
+                    iva: row.children[3].innerText,
+                    ivaTotal: row.children[4].innerText,
+                    tipo: row.children[5].getAttribute("data-tipo"),
+                    fuente: row.children[6].getAttribute("data-fuente")
+                };
+                entries.push(entry);
+            });
+
+            // Encabezado del PDF
+            pdf.setFontSize(12);
+            pdf.text('LIBRO DIARIO DE CAJA', 105, 10, null, null, 'center');
+            pdf.text(`Fecha: ${libroDiario.fecha}`, 105, 20, null, null, 'center');
+
+            // Detalles del libro diario
+            pdf.setFontSize(10);
+            pdf.text(`Saldo Inicial Caja: ${libroDiario.saldoInicialCaja}`, 10, 30);
+            pdf.text(`Saldo Inicial Banco: ${libroDiario.saldoInicialBanco}`, 10, 40);
+
+            // Tabla de entradas
+            pdf.setFontSize(10);
+            pdf.text('Entradas Registradas', 10, 50);
+            let startY = 60;
+            entries.forEach((entry, index) => {
+                pdf.text(`ID: ${entry.id}`, 10, startY + (index * 10));
+                pdf.text(`Concepto: ${entry.descripcion}`, 40, startY + (index * 10));
+                pdf.text(`Monto: ${entry.monto}`, 100, startY + (index * 10));
+                pdf.text(`IVA: ${entry.iva}%`, 130, startY + (index * 10));
+                pdf.text(`Total IVA: ${entry.ivaTotal}`, 150, startY + (index * 10));
+                pdf.text(`Tipo: ${entry.tipo}`, 180, startY + (index * 10));
+                pdf.text(`Fuente: ${entry.fuente}`, 200, startY + (index * 10));
+            });
+
+            // Guardar el PDF
+            pdf.save('libro_diario.pdf');
+        }
+    </script>
 </body>
 </html>
 
