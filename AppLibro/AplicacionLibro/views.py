@@ -111,10 +111,24 @@ def entrada_diario(request, libro_diario_id):
     # Recargar entradas desde la base de datos para mostrar los números actualizados
     entradas = libro_diario.entradadiario_set.all().order_by('id')  # Ordenar por ID
 
+    # Calcular totales
+    total_ingreso_caja = sum(entrada.ingresoCaja for entrada in entradas)
+    total_egreso_caja = sum(entrada.egresoCaja for entrada in entradas)
+    total_ingreso_banco = sum(entrada.ingresoBanco for entrada in entradas)
+    total_egreso_banco = sum(entrada.egresoBanco for entrada in entradas)
+    total_iva_ingreso = sum(entrada.ivaIngreso for entrada in entradas)
+    total_iva_egreso = sum(entrada.ivaEgreso for entrada in entradas)
+
     context = {
         'form': form,
         'libro_diario': libro_diario,
         'entradas': entradas,
+        'total_ingreso_caja': total_ingreso_caja,
+        'total_egreso_caja': total_egreso_caja,
+        'total_ingreso_banco': total_ingreso_banco,
+        'total_egreso_banco': total_egreso_banco,
+        'total_iva_ingreso': total_iva_ingreso,
+        'total_iva_egreso': total_iva_egreso,
     }
 
     return render(request, 'EntradaDiario.html', context)

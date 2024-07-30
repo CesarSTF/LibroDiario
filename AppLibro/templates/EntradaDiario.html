@@ -36,26 +36,30 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>ID Comprobante</th> <!-- Columna para el ID como número de comprobante -->
-                            <th>Concepto</th>
-                            <th>Monto</th>
-                            <th>IVA%</th>
-                            <th>Total IVA</th>
-                            <th>Tipo</th>
-                            <th>Fuente</th>
+                            <th>ID Comprobante</th>
+                            <th>Descripción</th>
+                            <th>Ingreso Caja</th>
+                            <th>Egreso Caja</th>
+                            <th>Ingreso Banco</th>
+                            <th>Egreso Banco</th>
+                            <th>IVA Ingreso</th>
+                            <th>IVA Egreso</th>
+                            <th>Fecha</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for entrada in entradas %}
                             <tr>
-                                <td>{{ entrada.id }}</td> <!-- Mostrar el ID como número de comprobante -->
+                                <td>{{ entrada.id }}</td>
                                 <td>{{ entrada.descripcion }}</td>
-                                <td>{{ entrada.ingresoCaja|add:entrada.egresoCaja|add:entrada.ingresoBanco|add:entrada.egresoBanco }}</td>
-                                <td>{{ entrada.iva }}</td>
-                                <td>{{ entrada.iva_total }}</td>
-                                <td data-tipo="{% if entrada.ingresoCaja or entrada.ingresoBanco %}Ingreso{% else %}Egreso{% endif %}"></td>
-                                <td data-fuente="{% if entrada.ingresoCaja or entrada.egresoCaja %}Caja{% elif entrada.ingresoBanco or entrada.egresoBanco %}Banco{% endif %}"></td>
+                                <td>{{ entrada.ingresoCaja }}</td>
+                                <td>{{ entrada.egresoCaja }}</td>
+                                <td>{{ entrada.ingresoBanco }}</td>
+                                <td>{{ entrada.egresoBanco }}</td>
+                                <td>{{ entrada.ivaIngreso }}</td>
+                                <td>{{ entrada.ivaEgreso }}</td>
+                                <td>{{ entrada.fecha|date:"d/m/Y" }}</td>
                                 <td>
                                     <a href="{% url 'modificar_entrada' entrada.id %}">Modificar</a>
                                     <a href="{% url 'eliminar_entrada' entrada.id %}" onclick="return confirm('¿Estás seguro de que quieres eliminar esta entrada?');">Eliminar</a>
@@ -63,12 +67,22 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="8">No hay entradas registradas.</td>
+                                <td colspan="10">No hay entradas registradas.</td>
                             </tr>
                         {% endfor %}
-            </tbody>
-        </table>
-            </tr>
+                        <!-- Fila para los totales -->
+                        <tr>
+                            <td colspan="1"><strong>Total:</strong></td>
+                            <td>{{ total_ingreso_caja }}</td>
+                            <td>{{ total_egreso_caja }}</td>
+                            <td>{{ total_ingreso_banco }}</td>
+                            <td>{{ total_egreso_banco }}</td>
+                            <td>{{ total_iva_ingreso }}</td>
+                            <td>{{ total_iva_egreso }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
                     </tbody>
                 </table>
             {% else %}
@@ -80,60 +94,78 @@
             <a href="{% url 'libro_diario' %}">Volver a la lista de Libros Diarios</a>
         </div>
     </div>
+
     <button onclick="generatePDF()">Descargar PDF</button>
 
     <script>
-        async function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
+    async function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
 
-            // Información del libro diario
-            const libroDiario = {
-                fecha: "{{ libro_diario.fecha|date:'d/m/Y' }}",
-                saldoInicialCaja: "{{ libro_diario.saldoInicialCaja }}",
-                saldoInicialBanco: "{{ libro_diario.saldoInicialBanco }}"
-            };
+        // Información del libro diario
+        const libroDiario = {
+            fecha: "{{ libro_diario.fecha|date:'d/m/Y' }}",
+            saldoInicialCaja: "{{ libro_diario.saldoInicialCaja }}",
+            saldoInicialBanco: "{{ libro_diario.saldoInicialBanco }}"
+        };
 
-            // Tabla de entradas
-            const entries = [];
-            document.querySelectorAll("tbody tr").forEach(row => {
+        // Obtener los totales desde el template
+        const totalIngresoCaja = "{{ total_ingreso_caja }}";
+        const totalEgresoCaja = "{{ total_egreso_caja }}";
+        const totalIngresoBanco = "{{ total_ingreso_banco }}";
+        const totalEgresoBanco = "{{ total_egreso_banco }}";
+        const totalIvaIngreso = "{{ total_iva_ingreso }}";
+        const totalIvaEgreso = "{{ total_iva_egreso }}";
+
+        // Tabla de entradas
+        const entries = [];
+        document.querySelectorAll("tbody tr").forEach(row => {
+            if (!row.children[0].innerText.includes('Total:')) {  // Excluir fila de totales
                 const entry = {
                     id: row.children[0].innerText,
                     descripcion: row.children[1].innerText,
-                    monto: row.children[2].innerText,
-                    iva: row.children[3].innerText,
-                    ivaTotal: row.children[4].innerText,
-                    tipo: row.children[5].getAttribute("data-tipo"),
-                    fuente: row.children[6].getAttribute("data-fuente")
+                    ingresoCaja: row.children[2].innerText,
+                    egresoCaja: row.children[3].innerText,
+                    ingresoBanco: row.children[4].innerText,
+                    egresoBanco: row.children[5].innerText,
+                    ivaIngreso: row.children[6].innerText,
+                    ivaEgreso: row.children[7].innerText,
+                    fecha: row.children[8].innerText
                 };
                 entries.push(entry);
-            });
+            }
+        });
 
-            // Encabezado del PDF
-            pdf.setFontSize(12);
-            pdf.text('LIBRO DIARIO DE CAJA', 105, 10, null, null, 'center');
-            pdf.text(`Fecha: ${libroDiario.fecha}`, 105, 20, null, null, 'center');
+        // Encabezado del PDF
+        pdf.setFontSize(12);
+        pdf.text('LIBRO DIARIO DE CAJA', 105, 10, { align: 'center' });
+        pdf.text(`Fecha: ${libroDiario.fecha}`, 105, 20, { align: 'center' });
 
-            // Detalles del libro diario
-            pdf.setFontSize(10);
-            pdf.text(`Saldo Inicial Caja: ${libroDiario.saldoInicialCaja}`, 10, 30);
-            pdf.text(`Saldo Inicial Banco: ${libroDiario.saldoInicialBanco}`, 10, 40);
+        // Detalles del libro diario
+        pdf.setFontSize(10);
+        pdf.text(`Saldo Inicial Caja: ${libroDiario.saldoInicialCaja}`, 10, 30);
+        pdf.text(`Saldo Inicial Banco: ${libroDiario.saldoInicialBanco}`, 10, 40);
 
-            // Configurar columnas y datos para la tabla
-            const columns = ["ID Comprobante", "Concepto", "Monto", "IVA%", "Total IVA", "Tipo", "Fuente"];
-            const rows = entries.map(entry => [entry.id, entry.descripcion, entry.monto, entry.iva, entry.ivaTotal, entry.tipo, entry.fuente]);
+        // Configurar columnas y datos para la tabla
+        const columns = ["ID Comprobante", "Descripción", "Ingreso Caja", "Egreso Caja", "Ingreso Banco", "Egreso Banco", "IVA Ingreso", "IVA Egreso", "Fecha"];
+        const rows = entries.map(entry => [entry.id, entry.descripcion, entry.ingresoCaja, entry.egresoCaja, entry.ingresoBanco, entry.egresoBanco, entry.ivaIngreso, entry.ivaEgreso, entry.fecha]);
 
-            // Agregar tabla al PDF
-            pdf.autoTable({
-                startY: 50,
-                head: [columns],
-                body: rows
-            });
+        // Agregar tabla al PDF
+        pdf.autoTable({
+            startY: 50,
+            head: [columns],
+            body: rows
+        });
 
-            // Guardar el PDF
-            pdf.save('libro_diario.pdf');
-        }
+        // Agregar fila de totales al PDF
+        pdf.autoTable({
+            startY: pdf.lastAutoTable.finalY + 10,
+            body: [['', 'Total:', totalIngresoCaja, totalEgresoCaja, totalIngresoBanco, totalEgresoBanco, totalIvaIngreso, totalIvaEgreso, '']],
+        });
+
+        // Guardar el PDF
+        pdf.save('libro_diario.pdf');
+    }
     </script>
 </body>
 </html>
-

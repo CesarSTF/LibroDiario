@@ -34,7 +34,6 @@ class LibroDiario(models.Model):
     def __str__(self):
         return self.descripcion
 
-
 from django.db import models
 from django.core.exceptions import ValidationError
 
@@ -52,18 +51,21 @@ class EntradaDiario(models.Model):
 
     @property
     def monto(self):
+        """Calcula el monto total de ingresos y egresos."""
         return self.ingresoCaja + self.egresoCaja + self.ingresoBanco + self.egresoBanco
 
     @property
     def iva_total(self):
+        """Calcula el total de IVA basado en el monto."""
         return (self.monto * self.iva) / 100
 
     @property
     def numeroComprobante(self):
+        """Devuelve el número de comprobante basado en el ID."""
         return self.id
 
     def clean(self):
-        # Validar que los valores no sean negativos
+        """Validaciones para asegurar que los valores no sean negativos y el IVA sea válido."""
         if self.ingresoCaja < 0:
             raise ValidationError('El ingreso en caja no puede ser negativo.')
         if self.egresoCaja < 0:
@@ -72,13 +74,12 @@ class EntradaDiario(models.Model):
             raise ValidationError('El ingreso en banco no puede ser negativo.')
         if self.egresoBanco < 0:
             raise ValidationError('El egreso en banco no puede ser negativo.')
+        if self.iva < 0 or self.iva > 100:
+            raise ValidationError('El IVA debe estar entre 0 y 100.')
 
     def save(self, *args, **kwargs):
-        # Llamar al método clean para validar los datos
+        """Calcula IVA de ingreso y egreso antes de guardar el modelo."""
         self.clean()
-
-        # Calcular IVA de ingreso y egreso
         self.ivaIngreso = (self.ingresoCaja + self.ingresoBanco) * self.iva / 100
         self.ivaEgreso = (self.egresoCaja + self.egresoBanco) * self.iva / 100
-
         super().save(*args, **kwargs)
