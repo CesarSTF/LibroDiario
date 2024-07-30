@@ -72,14 +72,13 @@
                         {% endfor %}
                         <!-- Fila para los totales -->
                         <tr>
-                            <td colspan="1"><strong>Total:</strong></td>
+                            <td colspan="2"><strong>Total:</strong></td>
                             <td>{{ total_ingreso_caja }}</td>
                             <td>{{ total_egreso_caja }}</td>
                             <td>{{ total_ingreso_banco }}</td>
                             <td>{{ total_egreso_banco }}</td>
                             <td>{{ total_iva_ingreso }}</td>
                             <td>{{ total_iva_egreso }}</td>
-                            <td></td>
                             <td></td>
                             <td></td>
                         </tr>
@@ -97,75 +96,103 @@
 
     <button onclick="generatePDF()">Descargar PDF</button>
 
-    <script>
-    async function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
+    <footer>
+        <p>Desarrollado por <span>Alexis Jara</span> </p>
+        <p>Desarrollado por <span>César López</span> </p>
+        <p>Desarrollado por <span>César Ramos</span> </p>
+        <p>Desarrollado por <span>Marco Chiliguano</span> </p>
+        <p>Desarrollado por <span>David Toledo</span> </p>
+    </footer>
+      <script>
+          async function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
 
-        // Información del libro diario
-        const libroDiario = {
-            fecha: "{{ libro_diario.fecha|date:'d/m/Y' }}",
-            saldoInicialCaja: "{{ libro_diario.saldoInicialCaja }}",
-            saldoInicialBanco: "{{ libro_diario.saldoInicialBanco }}"
-        };
+            // Información del libro diario
+            const libroDiario = {
+                fecha: "{{ libro_diario.fecha|date:'d/m/Y' }}",
+                saldoInicialCaja: "{{ libro_diario.saldoInicialCaja }}",
+                saldoInicialBanco: "{{ libro_diario.saldoInicialBanco }}"
+            };
 
-        // Obtener los totales desde el template
-        const totalIngresoCaja = "{{ total_ingreso_caja }}";
-        const totalEgresoCaja = "{{ total_egreso_caja }}";
-        const totalIngresoBanco = "{{ total_ingreso_banco }}";
-        const totalEgresoBanco = "{{ total_egreso_banco }}";
-        const totalIvaIngreso = "{{ total_iva_ingreso }}";
-        const totalIvaEgreso = "{{ total_iva_egreso }}";
+            // Obtener los totales desde el template
+            const totalIngresoCaja = "{{ total_ingreso_caja }}";
+            const totalEgresoCaja = "{{ total_egreso_caja }}";
+            const totalIngresoBanco = "{{ total_ingreso_banco }}";
+            const totalEgresoBanco = "{{ total_egreso_banco }}";
+            const totalIvaIngreso = "{{ total_iva_ingreso }}";
+            const totalIvaEgreso = "{{ total_iva_egreso }}";
 
-        // Tabla de entradas
-        const entries = [];
-        document.querySelectorAll("tbody tr").forEach(row => {
-            if (!row.children[0].innerText.includes('Total:')) {  // Excluir fila de totales
-                const entry = {
-                    id: row.children[0].innerText,
-                    descripcion: row.children[1].innerText,
-                    ingresoCaja: row.children[2].innerText,
-                    egresoCaja: row.children[3].innerText,
-                    ingresoBanco: row.children[4].innerText,
-                    egresoBanco: row.children[5].innerText,
-                    ivaIngreso: row.children[6].innerText,
-                    ivaEgreso: row.children[7].innerText,
-                    fecha: row.children[8].innerText
-                };
-                entries.push(entry);
-            }
-        });
+            // Tabla de entradas
+            const entries = [];
+            document.querySelectorAll("tbody tr").forEach(row => {
+                if (!row.children[0].innerText.includes('Total:')) {  // Excluir fila de totales
+                    const entry = {
+                        id: row.children[0].innerText,
+                        descripcion: row.children[1].innerText,
+                        ingresoCaja: row.children[2].innerText,
+                        egresoCaja: row.children[3].innerText,
+                        ingresoBanco: row.children[4].innerText,
+                        egresoBanco: row.children[5].innerText,
+                        ivaIngreso: row.children[6].innerText,
+                        ivaEgreso: row.children[7].innerText,
+                        fecha: row.children[8].innerText
+                    };
+                    entries.push(entry);
+                }
+            });
 
-        // Encabezado del PDF
-        pdf.setFontSize(12);
-        pdf.text('LIBRO DIARIO DE CAJA', 105, 10, { align: 'center' });
-        pdf.text(`Fecha: ${libroDiario.fecha}`, 105, 20, { align: 'center' });
+            // Encabezado del PDF
+            pdf.setFontSize(12);
+            pdf.text('LIBRO DIARIO DE CAJA', 105, 10, { align: 'center' });
+            pdf.text(`Fecha: ${libroDiario.fecha}`, 105, 20, { align: 'center' });
 
-        // Detalles del libro diario
-        pdf.setFontSize(10);
-        pdf.text(`Saldo Inicial Caja: ${libroDiario.saldoInicialCaja}`, 10, 30);
-        pdf.text(`Saldo Inicial Banco: ${libroDiario.saldoInicialBanco}`, 10, 40);
+            // Detalles del libro diario
+            pdf.setFontSize(10);
+            pdf.text(`Saldo Inicial Caja: ${libroDiario.saldoInicialCaja}`, 10, 30);
+            pdf.text(`Saldo Inicial Banco: ${libroDiario.saldoInicialBanco}`, 10, 40);
 
-        // Configurar columnas y datos para la tabla
-        const columns = ["ID Comprobante", "Descripción", "Ingreso Caja", "Egreso Caja", "Ingreso Banco", "Egreso Banco", "IVA Ingreso", "IVA Egreso", "Fecha"];
-        const rows = entries.map(entry => [entry.id, entry.descripcion, entry.ingresoCaja, entry.egresoCaja, entry.ingresoBanco, entry.egresoBanco, entry.ivaIngreso, entry.ivaEgreso, entry.fecha]);
+            // Configurar columnas y datos para la tabla
+            const columns = ["ID Comprobante", "Descripción", "Ingreso Caja", "Egreso Caja", "Ingreso Banco", "Egreso Banco", "IVA Ingreso", "IVA Egreso", "Fecha"];
+            const rows = entries.map(entry => [entry.id, entry.descripcion, entry.ingresoCaja, entry.egresoCaja, entry.ingresoBanco, entry.egresoBanco, entry.ivaIngreso, entry.ivaEgreso, entry.fecha]);
 
-        // Agregar tabla al PDF
-        pdf.autoTable({
-            startY: 50,
-            head: [columns],
-            body: rows
-        });
+            // Agregar tabla de entradas al PDF con estilos
+            pdf.autoTable({
+                startY: 50,
+                head: [columns],
+                body: rows,
+                styles: { fontSize: 8 }, // Tamaño de fuente de las celdas
+                headStyles: { fillColor: [0, 102, 204] }, // Color de fondo de las cabeceras (RGB, azul oscuro)
+                alternateRowStyles: { fillColor: [224, 224, 224] }, // Color de fondo alternativo para las filas (gris claro)
+            });
 
-        // Agregar fila de totales al PDF
-        pdf.autoTable({
-            startY: pdf.lastAutoTable.finalY + 10,
-            body: [['', 'Total:', totalIngresoCaja, totalEgresoCaja, totalIngresoBanco, totalEgresoBanco, totalIvaIngreso, totalIvaEgreso, '']],
-        });
+            // Encabezado para la tabla de totales
+            const totalsColumns = ["Descripción", "Ingreso Caja", "Egreso Caja", "Ingreso Banco", "Egreso Banco", "IVA Ingreso", "IVA Egreso"];
+            const totalsRows = [
+                ['Total', totalIngresoCaja, totalEgresoCaja, totalIngresoBanco, totalEgresoBanco, totalIvaIngreso, totalIvaEgreso, '']
+            ];
 
-        // Guardar el PDF
-        pdf.save('libro_diario.pdf');
-    }
+            // Agregar tabla de totales al PDF con estilos
+            pdf.autoTable({
+                startY: pdf.lastAutoTable.finalY + 10,
+                head: [totalsColumns],
+                body: totalsRows,
+                styles: { fontSize: 8 }, // Tamaño de fuente de las celdas
+                headStyles: { fillColor: [0, 51, 102] }, // Color de fondo de las cabeceras (RGB, azul más oscuro)
+                alternateRowStyles: { fillColor: [224, 224, 224] }, // Color de fondo alternativo para las filas (gris claro)
+            });
+
+            // Obtener la fecha actual y formatearla como dd_mm_aa
+            const fechaActual = new Date();
+            const dia = String(fechaActual.getDate()).padStart(2, '0');
+            const mes = String(fechaActual.getMonth() + 1).padStart(2, '0'); // Los meses empiezan desde 0
+            const año = String(fechaActual.getFullYear()).slice(-2); // Obtener los últimos dos dígitos del año
+
+            const nombreArchivo = `libro_${dia}_${mes}_${año}.pdf`;
+
+            // Guardar el PDF con el nombre del archivo que incluye la fecha
+            pdf.save(nombreArchivo);
+        }
     </script>
 </body>
 </html>

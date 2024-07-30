@@ -1,7 +1,7 @@
 /* entrada_diario.css */
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: sans-serif;
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
@@ -19,7 +19,7 @@ h1 {
 }
 
 main {
-    padding: 2em;
+    padding: 0;
 }
 
 #entrada-diario {
@@ -52,4 +52,28 @@ button {
 
 button:hover {
     background-color: #2980b9;
+}
+.titulo-libro-diario {
+    text-align: center;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+.detalles-libro {
+    background: linear-gradient(to bottom, lightblue, white);
+}
+.nueva-entrada {
+    background-color: lightgreen;
+    border: 10px solid transparent;
+    border-image: linear-gradient(to bottom, white, lightblue);
+    border-image-slice: 1;
+    border-radius: 100px;
+}
+.entradas-registradas {
+    /* background-color: lightgreen; */
+    border: 10px solid transparent;
+    border-image: linear-gradient(to bottom, white, lightblue);
+    border-image-slice: 1;
+    border-radius: 15px; /* Ajusta este valor según tus necesidades */
+}
+.celda-padding {
+    padding:30px;
 }
