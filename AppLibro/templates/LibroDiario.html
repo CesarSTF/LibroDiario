@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Libro Diario</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/libro_diario.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Libro Diario</h1>
+    </header>
+    <main>
+        <section id="libro-diario">
+            <h2>Detalles del Libro Diario</h2>
+            <form method="post" id="form-libro-diario">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Guardar</button>
+            </form>
+            <hr>
+            <h3>Filtrar por fecha</h3>
+            <form method="get" id="form-filtrar-fecha">
+                <label for="fecha_inicio">Fecha inicio:</label>
+                <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio|date:'Y-m-d' }}">
+                <label for="fecha_fin">Fecha fin:</label>
+                <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin|date:'Y-m-d' }}">
+                <button type="submit">Filtrar</button>
+            </form>
+            <hr>
+            <h3>Libro Diario</h3>
+            <div class="table-container">
+                <table id="tabla-entradas">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Detalles</th>
+                            <th>Ingreso Caja</th>
+                            <th>Egreso Caja</th>
+                            <th>Ingreso Banco</th>
+                            <th>Egreso Banco</th>
+                            <th>IVA</th>
+                            <th>IVA Ingreso</th>
+                            <th>IVA Egreso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for libro in libros_diarios %}
+                            <tr>
+                                <td colspan="9"><strong>Libro Diario: {{ libro.libro.descripcion }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Saldo Inicial</td>
+                                <td></td>
+                                <td>{{ libro.libro.saldoInicialCaja }}</td>
+                                <td></td>
+                                <td>{{ libro.libro.saldoInicialBanco }}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            {% for entrada in libro.libro.entradadiario_set.all %}
+                                <tr>
+                                    <td>{{ entrada.fecha }}</td>
+                                    <td>{{ entrada.descripcion }}</td>
+                                    <td>{{ entrada.ingresoCaja }}</td>
+                                    <td>{{ entrada.egresoCaja }}</td>
+                                    <td>{{ entrada.ingresoBanco }}</td>
+                                    <td>{{ entrada.egresoBanco }}</td>
+                                    <td>{{ entrada.iva }}</td>
+                                    <td>{{ entrada.ivaIngreso }}</td>
+                                    <td>{{ entrada.ivaEgreso }}</td>
+                                </tr>
+                            {% endfor %}
+                            <tr class="table-footer">
+                                <td>Total</td>
+                                <td></td>
+                                <td>{{ libro.totales.ingreso_caja }}</td>
+                                <td>{{ libro.totales.egreso_caja }}</td>
+                                <td>{{ libro.totales.ingreso_banco }}</td>
+                                <td>{{ libro.totales.egreso_banco }}</td>
+                                <td></td>
+                                <td>{{ libro.totales.iva_ingreso }}</td>
+                                <td>{{ libro.totales.iva_egreso }}</td>
+                            </tr>
+                            <tr class="table-footer">
+                                <td>Ganancia Neta</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>{{ libro.totales.ganancia_neta }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
