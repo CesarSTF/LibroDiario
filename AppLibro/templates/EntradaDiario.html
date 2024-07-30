@@ -12,7 +12,7 @@
 <body>
     <div id="content">
         <h1>Entradas del Libro Diario</h1>
-        
+
         <div>
             <h2>Detalles del Libro Diario</h2>
             <p><strong>Libro Diario:</strong> {{ libro_diario }}</p>
@@ -20,7 +20,7 @@
             <p><strong>Saldo Inicial Caja:</strong> {{ libro_diario.saldoInicialCaja }}</p>
             <p><strong>Saldo Inicial Banco:</strong> {{ libro_diario.saldoInicialBanco }}</p>
         </div>
-        
+
         <div>
             <h2>Agregar Nueva Entrada</h2>
             <form method="post">
@@ -66,13 +66,16 @@
                                 <td colspan="8">No hay entradas registradas.</td>
                             </tr>
                         {% endfor %}
+            </tbody>
+        </table>
+            </tr>
                     </tbody>
                 </table>
             {% else %}
                 <p>No hay entradas registradas.</p>
             {% endif %}
         </div>
-        
+
         <div>
             <a href="{% url 'libro_diario' %}">Volver a la lista de Libros Diarios</a>
         </div>

@@ -1,3 +1,4 @@
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.dateparse import parse_date
 
@@ -25,6 +26,13 @@ def libro_diario(request):
         ).distinct()
 
     libros_con_totales = []
+    total_general_ingreso_caja = 0
+    total_general_egreso_caja = 0
+    total_general_ingreso_banco = 0
+    total_general_egreso_banco = 0
+    total_general_iva_ingreso = 0
+    total_general_iva_egreso = 0
+
     for libro in libros_diarios:
         entradas = libro.entradadiario_set.all()
         total_ingreso_caja = sum(entrada.ingresoCaja for entrada in entradas)
@@ -36,6 +44,13 @@ def libro_diario(request):
         saldo_final_caja = libro.saldoInicialCaja + total_ingreso_caja - total_egreso_caja
         saldo_final_banco = libro.saldoInicialBanco + total_ingreso_banco - total_egreso_banco
         ganancia_neta = saldo_final_caja + saldo_final_banco
+
+        total_general_ingreso_caja += total_ingreso_caja
+        total_general_egreso_caja += total_egreso_caja
+        total_general_ingreso_banco += total_ingreso_banco
+        total_general_egreso_banco += total_egreso_banco
+        total_general_iva_ingreso += total_iva_ingreso
+        total_general_iva_egreso += total_iva_egreso
 
         libros_con_totales.append({
             'libro': libro,
@@ -53,6 +68,12 @@ def libro_diario(request):
     context = {
         'form': form,
         'libros_con_totales': libros_con_totales,
+        'total_general_ingreso_caja': total_general_ingreso_caja,
+        'total_general_egreso_caja': total_general_egreso_caja,
+        'total_general_ingreso_banco': total_general_ingreso_banco,
+        'total_general_egreso_banco': total_general_egreso_banco,
+        'total_general_iva_ingreso': total_general_iva_ingreso,
+        'total_general_iva_egreso': total_general_iva_egreso,
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,
     }
