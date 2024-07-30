@@ -42,7 +42,7 @@ form {
 
 form button {
     display: inline-block;
-    margin: 10px 0;
+    margin: 22px 0;
     padding: 10px 20px;
     background: linear-gradient(to bottom, lightblue, white);
     color: black;
@@ -95,5 +95,26 @@ th {
     text-align: center;
 }
 .titulo-centrado {
-    text-align:center;
+    text-align: center;
+}
+/* custom_styles.css */
+input[type="date"] {
+    background-color: #f0f8ff; /* Color de fondo */
+    border: 1px solid #ccc;    /* Borde */
+    border-radius: 5px;        /* Esquinas redondeadas */
+    padding: 10px;             /* Espaciado interno */
+    font-size: 16px;           /* Tamaño de la fuente */
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    background-color: #007bff; /* Color del indicador del calendario */
+    border-radius: 50%;
+    padding: 5px;
+}
+footer {
+    border: 1px solid #000000;
+    text-align: center;
+    color: salmon;
+    padding: 20px;
+    font-family: sans-serif;
 }
