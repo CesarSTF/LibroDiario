@@ -7,6 +7,7 @@
     <title>Entrada Diario</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/entrada_diario.css' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div id="content">
@@ -115,18 +116,15 @@
             pdf.text(`Saldo Inicial Caja: ${libroDiario.saldoInicialCaja}`, 10, 30);
             pdf.text(`Saldo Inicial Banco: ${libroDiario.saldoInicialBanco}`, 10, 40);
 
-            // Tabla de entradas
-            pdf.setFontSize(10);
-            pdf.text('Entradas Registradas', 10, 50);
-            let startY = 60;
-            entries.forEach((entry, index) => {
-                pdf.text(`ID: ${entry.id}`, 10, startY + (index * 10));
-                pdf.text(`Concepto: ${entry.descripcion}`, 40, startY + (index * 10));
-                pdf.text(`Monto: ${entry.monto}`, 100, startY + (index * 10));
-                pdf.text(`IVA: ${entry.iva}%`, 130, startY + (index * 10));
-                pdf.text(`Total IVA: ${entry.ivaTotal}`, 150, startY + (index * 10));
-                pdf.text(`Tipo: ${entry.tipo}`, 180, startY + (index * 10));
-                pdf.text(`Fuente: ${entry.fuente}`, 200, startY + (index * 10));
+            // Configurar columnas y datos para la tabla
+            const columns = ["ID Comprobante", "Concepto", "Monto", "IVA%", "Total IVA", "Tipo", "Fuente"];
+            const rows = entries.map(entry => [entry.id, entry.descripcion, entry.monto, entry.iva, entry.ivaTotal, entry.tipo, entry.fuente]);
+
+            // Agregar tabla al PDF
+            pdf.autoTable({
+                startY: 50,
+                head: [columns],
+                body: rows
             });
 
             // Guardar el PDF
